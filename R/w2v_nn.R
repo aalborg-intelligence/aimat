@@ -91,7 +91,6 @@ w2v_backprop <- function(X, Y, forward_cache, weights, learning_rate) {
 #'
 #' # Train the network
 #' trained_weights <- w2v_nn(X, Y, m, epochs = 100, learning_rate = 0.1, verbose = 10)
-
 w2v_nn <- function(X, Y, hidden_dim, epochs, learning_rate, weights = NULL, verbose = 10) {
   input_dim <- ncol(X)
   output_dim <- ncol(Y)
@@ -112,3 +111,136 @@ w2v_nn <- function(X, Y, hidden_dim, epochs, learning_rate, weights = NULL, verb
 
   weights
 }
+
+w2v_find_context <- function(word, corpus, win) {
+  i <- which(corpus == word)
+  i_neg <- list()
+  i_pos <- list()
+  for(j in seq_len(win)){
+    i_neg[[j]] <- i - j
+    i_pos[[j]] <- i + j
+  }
+  ii <- c(unlist(i_neg), unlist(i_pos))
+  ii <- ii[ii > 0 & ii <= length(corpus)]
+  return(data.frame(input = word, context = corpus[ii]))
+}
+
+#' Build word2vec data from a corpus represented as a vector of words
+#'
+#' @param corpus vector of words
+#' @param win integer, size of the context window
+#'
+#' @returns A list containing the following elements:
+#' - `X`: Sparse matrix of one-hot encoded input vectors
+#' - `Y`: Sparse matrix of one-hot encoded output vectors
+#' - `vocab`: Vector of unique words in the corpus
+#' - `pairs`: Data frame of word pairs in context
+#' @export
+#'
+#' @examples
+#' w2v_data <- w2v_build_data(bog, win = 1)
+w2v_build_data <- function(corpus, win = 1){
+  # Find unique words in the corpus
+  vocab <- sort(unique(corpus))
+
+  # Word pairs in context
+  pairs <- lapply(vocab, w2v_find_context, corpus = corpus, win = win) |> Reduce(rbind, x = _)
+
+  nn_input <- factor(pairs$input, levels = vocab)
+  nn_output <- factor(pairs$context, levels = vocab)
+
+  X <- Matrix(model.matrix(~ nn_input - 1), sparse = TRUE)
+  Y <- Matrix(model.matrix(~ nn_output - 1), sparse = TRUE)
+  colnames(X) <- colnames(Y) <- vocab
+  rslt <- list(X = X, Y = Y, vocab = vocab, pairs = pairs)
+  return(rslt)
+}
+
+#' Word2vec Neural Network
+#'
+#' @param corpus Vector of words
+#' @param win Integer, size of the context window
+#' @param hidden_dim Dimension of the hidden layer
+#' @param epochs Number of training epochs
+#' @param learning_rate Learning rate
+#' @param verbose Integer, verbosity level (0 = no output, >0 = output every `verbose` epochs)
+#' @export
+w2v <- function(corpus, win = 1, hidden_dim = 3, epochs = 100, learning_rate = 0.01, verbose = 10, weights = NULL){
+  data <- w2v_build_data(corpus, win)
+  X <- data$X
+  Y <- data$Y
+  vocab <- data$vocab
+
+  weights <- w2v_nn(X, Y, hidden_dim, epochs, learning_rate, verbose = verbose, weights = weights)
+  list(W1 = weights$W1, W2 = weights$W2, vocab = vocab)
+}
+
+#' Type function for words (non-exportet helper function)
+type_fun <- function(x) {
+  switch(x,
+         "ko" = "dyr",
+         "hest" = "dyr",
+         "marsvin" = "dyr",
+         "æsel" = "dyr",
+         "bil" = "ting",
+         "cykel" = "ting",
+         "hus" = "ting",
+         "skur" = "ting",
+         "blå" = "farve",
+         "grøn" = "farve",
+         "blåt" = "farve",
+         "grønt" = "farve",
+         "ser" = "verbum",
+         "får" = "verbum",
+         "har" = "verbum",
+         "og" = "og",
+         "en" = "artikel",
+         "et" = "artikel",
+         "." = ".",
+         "Ib" = "person",
+         "Kim" = "person",
+         "Ole" = "person",
+         "Bo" = "person",
+         "Anne" = "person",
+         "Eva" = "person",
+         "Ida" = "person",
+         "Mia" = "person")
+}
+
+plot.w2v <- function(x, ..., which = 1){
+  # if(!inherits(x, "w2v")){
+  #   stop("x must be a w2v object")
+  # }
+  if(which==1){
+    W <- x$W1
+    } else if(which == 2){
+      W <- t(x$W2)
+    } else{
+      stop("which must be 1 or 2")
+    }
+  library(dplyr)
+  library(plotly)
+  dat <- cbind(ord = x$vocab, type = sapply(x$vocab, type_fun), as.data.frame(as.matrix(W)))
+  if(ncol(W) == 3){
+    # stop("Plotting only works for three-dimensional word vectors")
+  dat_dir <- rowwise(dat) |> mutate(u = V1/sqrt(V1^2 + V2^2 + V3^2),
+                                    v = V2/sqrt(V1^2 + V2^2 + V3^2),
+                                    w = V3/sqrt(V1^2 + V2^2 + V3^2))
+  # Add zero and NA between each row of pos_dat_dir
+  dat_dir |> group_by(ord) |> reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), V3 = c(V3, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA), w = c(w, NA, NA)) |>
+    plot_ly() |>
+    add_trace(x = ~V1, y = ~V2, z = ~V3, type = "scatter3d", mode = "lines", line = list(width = 2), color = ~type, text = ~ord) |>
+    add_trace(x = ~V1, y = ~V2, z = ~V3, u = ~u, v = ~v, w = ~w, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1, sizemode = "absolute")
+  } else if(ncol(W) == 2){
+    dat_dir <- rowwise(dat) |> mutate(u = V1/sqrt(V1^2 + V2^2),
+                                      v = V2/sqrt(V1^2 + V2^2))
+    # Add zero and NA between each row of pos_dat_dir
+    dat_dir |> group_by(ord) |> reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA)) |>
+      plot_ly() |>
+      add_trace(x = ~V1, y = ~V2, type = "scatter", mode = "lines", line = list(width = 2), color = ~type, text = ~ord)
+      # add_trace(x = ~V1, y = ~V2, u = ~u, v = ~v, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1)
+  } else{
+    stop("Plotting only works for two- or three-dimensional word vectors")
+  }
+}
+
