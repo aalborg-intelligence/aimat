@@ -1,0 +1,73 @@
+---
+title: "Next word prediction using Word2Vec"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Next word prediction using Word2Vec}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+oldopt <- options(digits = 2, width = 100)
+```
+
+```{r setup}
+library(aimat)
+set.seed(42)
+```
+
+Børnebogen ligger som en vektor:
+```{r}
+length(bog)
+bog[1:30]
+```
+
+Word2vec med dimension 3 og kontekst +/-1:
+```{r}
+bog_w2v <- w2v(bog, win = 1, hidden_dim = 3, epochs = 1000, learning_rate = 0.02, verbose = 50)
+```
+
+Next word prediction data genereres:
+```{r}
+bog_data <- nwp_make_word_data(corpus = bog, context_size = 6, w2v = bog_w2v)
+```
+
+Ordene i data:
+```{r}
+dim(bog_data$words)
+head(bog_data$words)
+```
+
+Numeriske data:
+```{r}
+dim(bog_data$numeric)
+head(bog_data$numeric)
+```
+
+Træn et neuralt netværk:
+```{r}
+bog_nwp <- nn_fun(target ~ ., data = bog_data$numeric, n_hidden = c(15,0), iter = 5000, eta = 0.002, scale = TRUE)
+```
+
+Prædiktion af næste ord (i træningsdata):
+```{r}
+pred <- predict(bog_nwp, newdata = bog_data$numeric[1:20,], type = "class")
+```
+
+Nye forudsigelser:
+```{r}
+ny <- bog_data$words[1:20,]
+ny[,ncol(ny)] <- pred
+ny
+```
+
+## Uden Word2Vec
+
+```{r}
+W1 <- NULL
+```
+
