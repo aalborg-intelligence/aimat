@@ -236,7 +236,7 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
 #' @param activation one of "Sigmoid", "Tangenshyperbolsk", "ReLu", "Softsign", "Identitet"
 #' @param eta learning rate
 #' @param iter number of iterations
-#' @param scale unused
+#' @param scale logical to scale the input data
 #' @param lossfun one of "squared", "cross-entropy"
 #' @param type one of "regression", "klassifikation"
 #' @param trace logical to save each iteration
@@ -252,7 +252,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   ## Assumes response variable has values +/-1.
   ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
   x <- model.matrix(formula, data = data)
-  colnames(x)[colnames(x)=="(Intercept)"] <- "bias"
+  x <- x[,colnames(x)!="(Intercept)"]
   y_name <- as.character(formula)[2]
   y <- data[[y_name]]
 
@@ -274,7 +274,13 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
     }
   }
   y <- t(y)
-  X <- t(x[,colnames(x)!="bias"])
+  scale_val <- center_val <- NULL
+  if(scale){
+    x <- scale(x)
+    scale_val <- attr(x, "scaled:scale")
+    center_val <- attr(x, "scaled:center")
+  }
+  X <- t(x)
   if(length(weights)==1){
     params <- initialize_parameters(nrow(X), n_hidden[1], n_hidden[2], num_classes = nrow(y), const = weights)
   } else{
@@ -284,6 +290,8 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   rslt$formula <- formula
   rslt$levels <- lvls
   rslt$activation <- activation
+  rslt$scale_val <- scale_val
+  rslt$center_val <- center_val
   class(rslt) <- "nn"
   return(rslt)
 }
@@ -309,14 +317,15 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
 #' @return Predicted values
 #' @export
 #' @examples
-#' ir <- iris
-#' ir[,1:4] <- scale(ir[,1:4])
-#' nn <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
-#' predict(nn, ir, type = "class")
+#' nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation", scale = TRUE)
+#' predict(nn, iris, type = "class")
 predict.nn <- function(object, newdata, type = "response") {
   x <- model.matrix(object$formula, data = newdata)
-  colnames(x)[colnames(x)=="(Intercept)"] <- "bias"
-  X <- t(x[,colnames(x)!="bias"])
+  x <- x[,colnames(x)!="(Intercept)"]
+  if(!is.null(object$scale_val)){
+    x <- scale(x, center = object$center_val, scale = object$scale_val)
+  }
+  X <- t(x)
   cache <- forward_propagation(X, object$params, activation = object$activation)
   output <- if(!is.null(object$params$W3)){cache$A3} else{ if(!is.null(object$params$W2)){cache$A2} else{cache$A1} }
   if(type == "response"){

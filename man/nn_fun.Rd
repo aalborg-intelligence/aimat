@@ -33,7 +33,7 @@ nn_fun(
 
 \item{iter}{number of iterations}
 
-\item{scale}{unused}
+\item{scale}{logical to scale the input data}
 
 \item{lossfun}{one of "squared", "cross-entropy"}
 
