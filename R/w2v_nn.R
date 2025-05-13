@@ -165,6 +165,9 @@ w2v_build_data <- function(corpus, win = 1){
 #' @param learning_rate Learning rate
 #' @param verbose Integer, verbosity level (0 = no output, >0 = output every `verbose` epochs)
 #' @export
+#'
+#' @examples
+#' w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
 w2v <- function(corpus, win = 1, hidden_dim = 3, epochs = 100, learning_rate = 0.01, verbose = 10, weights = NULL){
   data <- w2v_build_data(corpus, win)
   X <- data$X
@@ -172,7 +175,9 @@ w2v <- function(corpus, win = 1, hidden_dim = 3, epochs = 100, learning_rate = 0
   vocab <- data$vocab
 
   weights <- w2v_nn(X, Y, hidden_dim, epochs, learning_rate, verbose = verbose, weights = weights)
-  list(W1 = weights$W1, W2 = weights$W2, vocab = vocab)
+  rslt <- list(W1 = weights$W1, W2 = weights$W2, vocab = vocab)
+  class(rslt) <- "w2v"
+  return(rslt)
 }
 
 #' Type function for words (non-exportet helper function)
@@ -207,6 +212,17 @@ type_fun <- function(x) {
          "Mia" = "person")
 }
 
+#' Plot word2vec model
+#'
+#' @param x Word2Vec model object (list with W1, W2 and vocab)
+#' @param ... Additional arguments (not used)
+#' @param which Integer, 1 or 2. If 1, plot W1 (input layer), if 2, plot W2 (output layer)
+#'
+#' @export
+#'
+#' @examples
+#' w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
+#' plot(w, which = 1)
 plot.w2v <- function(x, ..., which = 1){
   # if(!inherits(x, "w2v")){
   #   stop("x must be a w2v object")

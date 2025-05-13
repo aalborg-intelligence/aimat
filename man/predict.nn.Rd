@@ -20,8 +20,6 @@ Predicted values
 Predict method for neural network
 }
 \examples{
-ir <- iris
-ir[,1:4] <- scale(ir[,1:4])
-nn <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
-predict(nn, ir, type = "class")
+nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation", scale = TRUE)
+predict(nn, iris, type = "class")
 }

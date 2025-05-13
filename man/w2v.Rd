@@ -10,7 +10,8 @@ w2v(
   hidden_dim = 3,
   epochs = 100,
   learning_rate = 0.01,
-  verbose = 10
+  verbose = 10,
+  weights = NULL
 )
 }
 \arguments{
@@ -28,4 +29,7 @@ w2v(
 }
 \description{
 Word2vec Neural Network
+}
+\examples{
+w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
 }
