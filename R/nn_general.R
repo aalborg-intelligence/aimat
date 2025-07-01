@@ -321,7 +321,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
 #' predict(nn, iris, type = "class")
 predict.nn <- function(object, newdata, type = "response") {
   x <- model.matrix(object$formula, data = newdata)
-  x <- x[,colnames(x)!="(Intercept)"]
+  x <- x[,colnames(x)!="(Intercept)",drop=FALSE]
   if(!is.null(object$scale_val)){
     x <- scale(x, center = object$center_val, scale = object$scale_val)
   }
