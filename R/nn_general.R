@@ -7,17 +7,17 @@ sigmoid <- function(x) {
 loss_grad <- function(Y, output, loss_function){
   num_classes <- nrow(Y)
   if(loss_function == "cross-entropy"){
-    if(is.null(num_classes) || num_classes==1){
+    # if(is.null(num_classes) || num_classes==1){
       return(output - Y)
-    } else{
-      return(t(output) - Y)
-    }
+    # } else{
+    #   return(t(output) - Y)
+    # }
   } else if(loss_function == "squared"){
-    if(is.null(num_classes) || num_classes==1){
+    # if(is.null(num_classes) || num_classes==1){
       return((output - Y) * output * (1 - output))
-    } else{
-      return((t(output) - Y) * t(output) * (1 - t(output)))
-    }
+    # } else{
+    #   return((t(output) - Y) * t(output) * (1 - t(output)))
+    # }
   } else{
     stop("Unknown loss function")
   }
@@ -96,7 +96,7 @@ forward_propagation <- function(X, params, activation = "Sigmoid") {
   out <- list(Z1 = Z1, A1 = A1)
   if(is.null(params$W2)){ # No hidden layers
     if(length(params$b1)>1){ # Change to softmax if num_classes > 1
-      out$A1 <- softmax(t(Z1))
+      out$A1 <- t(softmax(t(Z1))) # Softmax expects input as rows
     }
     return(out)
   }
@@ -109,13 +109,13 @@ forward_propagation <- function(X, params, activation = "Sigmoid") {
     out$A2 <- activation_fun(out$Z2, activation = activation)
     out$Z3 <- params$W3 %*% out$A2 + matrix(params$b3, nrow = length(params$b3), ncol = ncol(out$A2))
     if(length(params$b3)>1){
-      out$A3 <- softmax(t(out$Z3))
+      out$A3 <- t(softmax(t(out$Z3))) # Softmax expects input as rows
     } else{
       out$A3 <- sigmoid(out$Z3)
     }
   } else{
     if(length(params$b2)>1){
-      out$A2 <- softmax(t(out$Z2))
+      out$A2 <- t(softmax(t(out$Z2))) # Softmax expects input as rows
     } else{
       out$A2 <- sigmoid(out$Z2)
     }
@@ -127,14 +127,14 @@ forward_propagation <- function(X, params, activation = "Sigmoid") {
 compute_loss <- function(Y, output, loss_function = c("cross-entropy", "squared")) {
   num_classes <- nrow(Y)
   if(loss_function == "squared"){
-    if(is.null(num_classes) || num_classes==1){
-      return(1/2*sum((Y - t(output))^2))
-    } else{
+    # if(is.null(num_classes) || num_classes==1){
+    #   return(1/2*sum((Y - t(output))^2))
+    # } else{
       return(1/2*sum((Y - output)^2))
-    }
+    # }
   } else if(loss_function == "cross-entropy"){
     if(is.null(num_classes) || num_classes==1){
-      return(sum(-Y * log(t(output)) - (1 - Y) * log(1 - t(output))))
+      return(sum(-Y * log(output) - (1 - Y) * log(1 - output)))
     } else{
       return(-sum(log(output[Y!=0])))
       # return(-mean(rowSums(Y * log(output))))
@@ -208,7 +208,7 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
   for (i in 1:iterations) {
     cache <- forward_propagation(X, params, activation = activation)
     output <- if(!is.null(params$W3)){cache$A3} else{ if(!is.null(params$W2)){cache$A2} else{cache$A1} }
-    loss_list[[i]] <- loss <- compute_loss(Y, t(output), loss_function)
+    loss_list[[i]] <- loss <- compute_loss(Y, output, loss_function)
     grads <- backward_propagation(X, Y, params, cache, loss_function = loss_function, activation = activation)
     params <- update_parameters(params, grads, learning_rate)
     if (iterations >= 5 && i %% floor(iterations/5) == 0) {
