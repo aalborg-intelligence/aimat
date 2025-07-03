@@ -236,7 +236,12 @@ plot.w2v <- function(x, ..., which = 1){
     }
   library(dplyr)
   library(plotly)
-  dat <- cbind(ord = x$vocab, type = sapply(x$vocab, type_fun), as.data.frame(as.matrix(W)))
+  dat <- cbind(ord = x$vocab, as.data.frame(as.matrix(W)))
+  if(all(unique(dat$ord) %in% unique(bog))){
+    dat$type <- sapply(dat$ord, type_fun)
+  } else{
+    dat$type <- dat$ord
+  }
   if(ncol(W) == 3){
     # stop("Plotting only works for three-dimensional word vectors")
   dat_dir <- rowwise(dat) |> mutate(u = V1/sqrt(V1^2 + V2^2 + V3^2),
