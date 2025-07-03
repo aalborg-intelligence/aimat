@@ -7,17 +7,9 @@ sigmoid <- function(x) {
 loss_grad <- function(Y, output, loss_function){
   num_classes <- nrow(Y)
   if(loss_function == "cross-entropy"){
-    # if(is.null(num_classes) || num_classes==1){
       return(output - Y)
-    # } else{
-    #   return(t(output) - Y)
-    # }
   } else if(loss_function == "squared"){
-    # if(is.null(num_classes) || num_classes==1){
       return((output - Y) * output * (1 - output))
-    # } else{
-    #   return((t(output) - Y) * t(output) * (1 - t(output)))
-    # }
   } else{
     stop("Unknown loss function")
   }
@@ -127,11 +119,7 @@ forward_propagation <- function(X, params, activation = "Sigmoid") {
 compute_loss <- function(Y, output, loss_function = c("cross-entropy", "squared")) {
   num_classes <- nrow(Y)
   if(loss_function == "squared"){
-    # if(is.null(num_classes) || num_classes==1){
-    #   return(1/2*sum((Y - t(output))^2))
-    # } else{
       return(1/2*sum((Y - output)^2))
-    # }
   } else if(loss_function == "cross-entropy"){
     if(is.null(num_classes) || num_classes==1){
       return(sum(-Y * log(output) - (1 - Y) * log(1 - output)))
