@@ -2,6 +2,7 @@
 
 S3method(plot,w2v)
 S3method(predict,nn)
+export(aimatApp)
 export(fibonacci_sphere)
 export(nn_fun)
 export(nn_viz)
