@@ -331,8 +331,11 @@ predict.nn <- function(object, newdata, type = "response") {
   if(type == "response"){
     return(output)
   } else{
+    if(type != "class"){
+      stop("Type must be 'response' or 'class'")
+    }
     if(length(object$levels)==2){
-      return(ifelse(output>0.5, object$levels[2], object$levels[1]))
+      return(as.vector(ifelse(output>=0.5, object$levels[1], object$levels[2])))
     } else{
       return(object$levels[apply(output, 1, which.max)])
     }
