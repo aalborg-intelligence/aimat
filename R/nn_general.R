@@ -9,6 +9,7 @@ loss_grad <- function(Y, output, loss_function){
   if(loss_function == "cross-entropy"){
       return(output - Y)
   } else if(loss_function == "squared"){
+    # FIXME: Activation function sigmoid is implicitly assumed here
       return((output - Y) * output * (1 - output))
   } else{
     stop("Unknown loss function")
@@ -103,12 +104,14 @@ forward_propagation <- function(X, params, activation = "Sigmoid") {
     if(length(params$b3)>1){
       out$A3 <- t(softmax(t(out$Z3))) # Softmax expects input as rows
     } else{
+      # FIXME: Activation function sigmoid is assumed here
       out$A3 <- sigmoid(out$Z3)
     }
   } else{
     if(length(params$b2)>1){
       out$A2 <- t(softmax(t(out$Z2))) # Softmax expects input as rows
     } else{
+      # FIXME: Activation function sigmoid is assumed here
       out$A2 <- sigmoid(out$Z2)
     }
   }
