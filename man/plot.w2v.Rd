@@ -18,5 +18,5 @@ Plot word2vec model
 }
 \examples{
 w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
-plot.w2v(w, which = 1)
+plot(w, which = 1)
 }

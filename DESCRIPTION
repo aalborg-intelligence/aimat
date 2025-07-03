@@ -11,7 +11,7 @@ Authors@R: c(
   )
 Description: Functions to support the Danish language site aimat.dk
     containing teaching material related to the math behind AI.
-Imports: Matrix
+Imports: Matrix, visNetwork
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
@@ -19,6 +19,4 @@ RoxygenNote: 7.3.2
 Depends: 
     R (>= 3.5)
 Suggests: 
-    knitr,
-    rmarkdown
-VignetteBuilder: knitr
+    knitr
