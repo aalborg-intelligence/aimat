@@ -319,6 +319,7 @@ predict.nn <- function(object, newdata, type = "response") {
   X <- t(x)
   cache <- forward_propagation(X, object$params, activation = object$activation)
   output <- if(!is.null(object$params$W3)){cache$A3} else{ if(!is.null(object$params$W2)){cache$A2} else{cache$A1} }
+  output <- t(output)
   if(type == "response"){
     return(output)
   } else{
