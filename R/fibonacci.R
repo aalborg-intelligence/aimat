@@ -3,12 +3,14 @@
 #' @param samples Number of points to generate on the sphere.
 #'
 #' @returns A matrix of points on the sphere, where each row is a point in 3D space.
-#' @export
 #'
 #' @examples
 #' points <- fibonacci_sphere()
 #' library(plotly)
-#' plot_ly(x = points[, 1], y = points[, 2], z = points[, 3], type = "scatter3d", mode = "markers", marker = list(size = 5))
+#' plot_ly(x = points[, 1], y = points[, 2], z = points[, 3],
+#'   type = "scatter3d", mode = "markers", marker = list(size = 5))
+#'
+#' @export
 fibonacci_sphere <- function(samples = 1000) {
   phi <- pi * (sqrt(5) - 1)  # gyldent snit i radianer
   y <- seq(-1, 1, length.out = samples)

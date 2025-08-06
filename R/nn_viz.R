@@ -1,15 +1,17 @@
 #' Visualize a neural network
 #'
-#' @param nn
+#' @param nn FIXME
 #'
 #' @import visNetwork
-#' @export
 #'
 #' @examples
 #' ir <- iris
 #' ir[,1:4] <- scale(ir[,1:4])
-#' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
+#' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
 #' nn_viz(fit_ir)
+#'
+#' @export
 nn_viz <- function(nn) {
   params <- nn$params
   cache <- nn$cache

@@ -233,12 +233,15 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
 #' @param trace logical to save each iteration
 #'
 #' @returns Fitted neural network model as an object of class "nn"
-#' @export
+#' 
 #'
 #' @examples
 #' ir <- iris
 #' ir[,1:4] <- scale(ir[,1:4])
-#' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
+#' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
+#' 
+#' @export
 nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE){
   ## Assumes response variable has values +/-1.
   ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
@@ -305,12 +308,17 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
 #' @param object Fitted neural network model
 #' @param newdata Data frame with new data
 #' @param type One of "response", "class"
+#' @param ... Additional arguments, currently not used
 #' @return Predicted values
-#' @export
+#' 
 #' @examples
-#' nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation", scale = TRUE)
+#' nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#'   lossfun = "cross-entropy", activation = "Sigmoid",
+#'   type = "klassifikation", scale = TRUE)
 #' predict(nn, iris, type = "class")
-predict.nn <- function(object, newdata, type = "response") {
+#'
+#' @export
+predict.nn <- function(object, newdata, type = "response", ...) {
   x <- model.matrix(object$formula, data = newdata)
   x <- x[,colnames(x)!="(Intercept)",drop=FALSE]
   if(!is.null(object$scale_val)){

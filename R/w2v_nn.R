@@ -67,6 +67,7 @@ w2v_backprop <- function(X, Y, forward_cache, weights, learning_rate) {
 #' @param epochs Number of training epochs
 #' @param learning_rate Learning rate
 #' @param weights Initial weights for the network (random if NULL)
+#' @param verbose FIXME
 #'
 #' @returns Named list contaning trained weights for the network
 #' @export
@@ -164,10 +165,13 @@ w2v_build_data <- function(corpus, win = 1){
 #' @param epochs Number of training epochs
 #' @param learning_rate Learning rate
 #' @param verbose Integer, verbosity level (0 = no output, >0 = output every `verbose` epochs)
-#' @export
+#' @param weights FIXME
+#' 
 #'
 #' @examples
 #' w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
+#'
+#' @export
 w2v <- function(corpus, win = 1, hidden_dim = 3, epochs = 100, learning_rate = 0.01, verbose = 10, weights = NULL){
   data <- w2v_build_data(corpus, win)
   X <- data$X
@@ -234,8 +238,8 @@ plot.w2v <- function(x, ..., which = 1){
     } else{
       stop("which must be 1 or 2")
     }
-  library(dplyr)
-  library(plotly)
+  requireNamespace(dplyr)   ## FIXME
+  requireNamespace(plotly)  ## FIXME
   dat <- cbind(ord = x$vocab, as.data.frame(as.matrix(W)))
   if(all(unique(dat$ord) %in% unique(bog))){
     dat$type <- sapply(dat$ord, type_fun)
