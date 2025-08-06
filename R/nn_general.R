@@ -321,6 +321,9 @@ predict.nn <- function(object, newdata, type = "response") {
   output <- if(!is.null(object$params$W3)){cache$A3} else{ if(!is.null(object$params$W2)){cache$A2} else{cache$A1} }
   output <- t(output)
   if(type == "response"){
+    if(!is.null(object$lvls)){
+      colnames(output) <- object$lvls
+    }
     return(output)
   } else{
     if(type != "class"){
@@ -332,4 +335,43 @@ predict.nn <- function(object, newdata, type = "response") {
       return(object$levels[apply(output, 1, which.max)])
     }
   }
+}
+
+#' Cross-validation for neural network
+#' @param ... Additional arguments passed to `nn_fun`
+#' @param k Number of folds for cross-validation
+#' @return Mean accuracy across folds
+#' @export
+#' @examples
+#' cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy")
+nn_fun_cv <- function(formula, data, ..., k=5){
+  # Cross-validation for neural network
+  alist <- list(...)
+  alist$formula <- formula
+  y_name <- as.character(formula)[2]
+  n <- nrow(data)
+  n0 <- floor(n/k)
+  full_folds <- rep(1:k, each = n0)
+  partial_folds <- numeric(0)
+  if(n%%k>0){
+    partial_folds <- 1:(n-k*n0)
+  }
+  id <- sample(c(full_folds, partial_folds))
+  prec <- rep(0, k)
+  for(i in seq_len(k)){
+    train <- data[id!=i,]
+    test <- data[id==i,]
+    alist$data <- train
+    fit <- do.call(nn_fun, alist)
+    if(is.null(fit$levels)){
+      stop("Cross validation only possible for classification problems at the moment.")
+    }
+    pred <- predict(fit, newdata = test, type = "class")
+    y <- test[[y_name]]
+    prec[i] <- mean(pred==y)
+    # if(prec[i]<.5){
+    #   prec[i] <- 1-prec[i]
+    # }
+  }
+  return(mean(prec))
 }
