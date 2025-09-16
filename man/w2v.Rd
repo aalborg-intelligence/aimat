@@ -26,10 +26,13 @@ w2v(
 \item{learning_rate}{Learning rate}
 
 \item{verbose}{Integer, verbosity level (0 = no output, >0 = output every `verbose` epochs)}
+
+\item{weights}{FIXME}
 }
 \description{
 Word2vec Neural Network
 }
 \examples{
 w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
+
 }

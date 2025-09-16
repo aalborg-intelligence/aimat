@@ -50,5 +50,7 @@ General neural network with at most two hidden layers
 \examples{
 ir <- iris
 ir[,1:4] <- scale(ir[,1:4])
-fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
+fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+  lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
+
 }

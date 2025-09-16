@@ -18,6 +18,8 @@ w2v_nn(X, Y, hidden_dim, epochs, learning_rate, weights = NULL, verbose = 10)
 \item{learning_rate}{Learning rate}
 
 \item{weights}{Initial weights for the network (random if NULL)}
+
+\item{verbose}{FIXME}
 }
 \value{
 Named list contaning trained weights for the network
