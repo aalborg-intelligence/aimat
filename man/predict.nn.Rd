@@ -4,7 +4,7 @@
 \alias{predict.nn}
 \title{Predict method for neural network}
 \usage{
-\method{predict}{nn}(object, newdata, type = "response")
+\method{predict}{nn}(object, newdata, type = "response", ...)
 }
 \arguments{
 \item{object}{Fitted neural network model}
@@ -12,6 +12,8 @@
 \item{newdata}{Data frame with new data}
 
 \item{type}{One of "response", "class"}
+
+\item{...}{Additional arguments, currently not used}
 }
 \value{
 Predicted values
@@ -20,6 +22,13 @@ Predicted values
 Predict method for neural network
 }
 \examples{
-nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation", scale = TRUE)
-predict(nn, iris, type = "class")
+nn_iris <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+  lossfun = "cross-entropy", activation = "Sigmoid",
+  type = "klassifikation", scale = TRUE)
+predict(nn_iris, iris, type = "class")
+
+nn_trees <- nn_fun(Volume ~ ., trees, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+  lossfun = "squared", activation = "Sigmoid",
+  type = "regression", scale = TRUE)
+predict(nn_trees, trees, type = "response")
 }

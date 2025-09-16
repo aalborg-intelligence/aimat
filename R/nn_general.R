@@ -1,15 +1,27 @@
 # Define the sigmoid activation function
 sigmoid <- function(x) {
-  1 / (1 + exp(-x))
+1 / (1 + exp(-x))
 }
 
 # Gradient of loss function
-loss_grad <- function(Y, output, loss_function){
-  num_classes <- nrow(Y)
-  if(loss_function == "cross-entropy"){
-      return(output - Y)
-  } else if(loss_function == "squared"){
-    # FIXME: Activation function sigmoid is implicitly assumed here
+loss_grad <- function(Y, output, loss_function, type = "klassifikation"){
+num_classes <- nrow(Y)
+if(type == "regression"){
+  if(length(Y) != length(output)){
+    stop("Y and output must have the same length for regression")
+  }
+  if(loss_function == "squared"){
+    return(output - Y)
+  } else if(loss_function == "cross-entropy"){
+    stop("Cross-entropy loss is not applicable for regression")
+  } else{
+    stop("Unknown loss function")
+  }
+}
+if(loss_function == "cross-entropy"){
+    return(output - Y)
+} else if(loss_function == "squared"){
+  # Activation function sigmoid is implicitly assumed here
       return((output - Y) * output * (1 - output))
   } else{
     stop("Unknown loss function")
@@ -83,42 +95,53 @@ initialize_parameters <- function(n, n1, n2, num_classes = 1, const = NA) {
 }
 
 # Forward propagation
-forward_propagation <- function(X, params, activation = "Sigmoid") {
+forward_propagation <- function(X, params, activation = "Sigmoid", type = "klassifikation") {
   Z1 <- params$W1 %*% X + matrix(params$b1, nrow = length(params$b1), ncol = ncol(X))
   A1 <- activation_fun(Z1, activation = activation)
   out <- list(Z1 = Z1, A1 = A1)
   if(is.null(params$W2)){ # No hidden layers
-    if(length(params$b1)>1){ # Change to softmax if num_classes > 1
+    if(type == "regression"){ # Regression
+      out$A1 <- Z1 # No activation function for regression
+    } else if(type == "klassifikation" && length(params$b1)==1){ # Sigmoid for binary classification
+      out$A1 <- sigmoid(Z1)
+    } else if(type == "klassifikation" && length(params$b1)>1){ # Change to softmax if num_classes > 1
       out$A1 <- t(softmax(t(Z1))) # Softmax expects input as rows
+    } else{
+      stop("Unknown type")
     }
     return(out)
   }
   # Now there is at least one hidden layer
-  out$Z2 <- try(params$W2 %*% A1 + matrix(params$b2, nrow = length(params$b2), ncol = ncol(A1)))
-  # if(inherits(out$Z2, "try-error")){
-  #   browser()
-  # }
-  if(!is.null(params$W3)){
+  out$Z2 <- params$W2 %*% A1 + matrix(params$b2, nrow = length(params$b2), ncol = ncol(A1))
+  if(!is.null(params$W3)){ # Two hidden layers
     out$A2 <- activation_fun(out$Z2, activation = activation)
     out$Z3 <- params$W3 %*% out$A2 + matrix(params$b3, nrow = length(params$b3), ncol = ncol(out$A2))
-    if(length(params$b3)>1){
-      out$A3 <- t(softmax(t(out$Z3))) # Softmax expects input as rows
+    if(type == "klassifikation"){
+      if(length(params$b3)>1){
+        out$A3 <- t(softmax(t(out$Z3))) # Softmax expects input as rows
+      } else{
+        out$A3 <- sigmoid(out$Z3)
+      }
+    } else if(type == "regression"){ # Regression
+      out$A3 <- out$Z3 # No activation function for regression
     } else{
-      # FIXME: Activation function sigmoid is assumed here
-      out$A3 <- sigmoid(out$Z3)
+      stop("Unknown type")
     }
-  } else{
-    if(length(params$b2)>1){
+  } else{ # One hidden layer
+    if(type == "klassifikation" && length(params$b2)>1){ # Change to softmax if num_classes > 1
       out$A2 <- t(softmax(t(out$Z2))) # Softmax expects input as rows
-    } else{
-      # FIXME: Activation function sigmoid is assumed here
+    } else if(type == "klassifikation" && length(params$b2)==1){ # Sigmoid for binary classification
       out$A2 <- sigmoid(out$Z2)
+    } else if(type == "regression"){ # Regression
+      out$A2 <- out$Z2 # No activation function for regression
+    } else{
+      stop("Unknown type")
     }
   }
   return(out)
 }
 
-# Compute the loss (binary cross-entropy)
+# Compute the loss (binary cross-entropy or squared error)
 compute_loss <- function(Y, output, loss_function = c("cross-entropy", "squared")) {
   num_classes <- nrow(Y)
   if(loss_function == "squared"){
@@ -136,17 +159,17 @@ compute_loss <- function(Y, output, loss_function = c("cross-entropy", "squared"
 }
 
 # Backward propagation
-backward_propagation <- function(X, Y, params, cache, loss_function = "cross-entropy", activation = "Sigmoid") {
+backward_propagation <- function(X, Y, params, cache, loss_function = "cross-entropy", activation = "Sigmoid", type = "klassifikation") {
   m <- ncol(X)
   if(!is.null(params$W3)){ # Two hidden layers
-    dZ3 <- loss_grad(Y, cache$A3, loss_function)
+    dZ3 <- loss_grad(Y, cache$A3, loss_function, type = type)
     dW3 <- dZ3 %*% t(cache$A2)
     db3 <- rowSums(dZ3)
     dA2 <- t(params$W3) %*% dZ3
     #    dZ2 <- dA2 * cache$A2 * (1 - cache$A2) # Sigmoid
     dZ2 <- dA2 * activation_grad(cache$A2, activation = activation)
   } else if(!is.null(params$W2)){ # One hidden layers
-    dZ2 <- loss_grad(Y, cache$A2, loss_function)
+    dZ2 <- loss_grad(Y, cache$A2, loss_function, type = type)
   }
   if(!is.null(params$W2)){ # One hidden layer
     dW2 <- dZ2 %*% t(cache$A1)
@@ -155,7 +178,7 @@ backward_propagation <- function(X, Y, params, cache, loss_function = "cross-ent
     #    dZ1 <- dA1 * cache$A1 * (1 - cache$A1) # Sigmoid
     dZ1 <- dA1 * activation_grad(cache$A1, activation = activation)
   } else{ # No hidden layers
-    dZ1 <- loss_grad(Y, cache$A1, loss_function)
+    dZ1 <- loss_grad(Y, cache$A1, loss_function, type = type)
   }
   dW1 <- dZ1 %*% t(X)
   db1 <- rowSums(dZ1)
@@ -187,7 +210,7 @@ update_parameters <- function(params, grads, learning_rate) {
 }
 
 # Train the neural network
-train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params = NULL, loss_function = "cross-entropy", activation = "Sigmoid", trace = FALSE) {
+train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params = NULL, loss_function = "cross-entropy", activation = "Sigmoid", trace = FALSE, type = "klassifikation") {
   if(n1==0 & n2>0){
     n1 <- n2
   }
@@ -197,10 +220,10 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
   }
   cache_list <- loss_list <- grads_list <- params_list <- list()
   for (i in 1:iterations) {
-    cache <- forward_propagation(X, params, activation = activation)
+    cache <- forward_propagation(X, params, activation = activation, type = type)
     output <- if(!is.null(params$W3)){cache$A3} else{ if(!is.null(params$W2)){cache$A2} else{cache$A1} }
     loss_list[[i]] <- loss <- compute_loss(Y, output, loss_function)
-    grads <- backward_propagation(X, Y, params, cache, loss_function = loss_function, activation = activation)
+    grads <- backward_propagation(X, Y, params, cache, loss_function = loss_function, activation = activation, type = type)
     params <- update_parameters(params, grads, learning_rate)
     if (iterations >= 5 && i %% floor(iterations/5) == 0) {
       cat("Iteration", i, "loss:", loss, "\n")
@@ -233,14 +256,14 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
 #' @param trace logical to save each iteration
 #'
 #' @returns Fitted neural network model as an object of class "nn"
-#' 
+#'
 #'
 #' @examples
 #' ir <- iris
 #' ir[,1:4] <- scale(ir[,1:4])
 #' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
 #'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
-#' 
+#'
 #' @export
 nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE){
   ## Assumes response variable has values +/-1.
@@ -280,12 +303,13 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   } else{
     params <- initialize_parameters(nrow(X), n_hidden[1], n_hidden[2], num_classes = nrow(y))
   }
-  rslt <- train_neural_network(X, y, n1 = n_hidden[1], n2 = n_hidden[2], iterations = iter, learning_rate = eta, params = params, loss_function = lossfun, activation = activation, trace = trace)
+  rslt <- train_neural_network(X, y, n1 = n_hidden[1], n2 = n_hidden[2], iterations = iter, learning_rate = eta, params = params, loss_function = lossfun, activation = activation, trace = trace, type = type)
   rslt$formula <- formula
   rslt$levels <- lvls
   rslt$activation <- activation
   rslt$scale_val <- scale_val
   rslt$center_val <- center_val
+  rslt$type <- type
   class(rslt) <- "nn"
   return(rslt)
 }
@@ -310,13 +334,17 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
 #' @param type One of "response", "class"
 #' @param ... Additional arguments, currently not used
 #' @return Predicted values
-#' 
+#'
 #' @examples
-#' nn <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#' nn_iris <- nn_fun(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
 #'   lossfun = "cross-entropy", activation = "Sigmoid",
 #'   type = "klassifikation", scale = TRUE)
-#' predict(nn, iris, type = "class")
+#' predict(nn_iris, iris, type = "class")
 #'
+#' nn_trees <- nn_fun(Volume ~ ., trees, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#'   lossfun = "squared", activation = "Sigmoid",
+#'   type = "regression", scale = TRUE)
+#' predict(nn_trees, trees, type = "response")
 #' @export
 predict.nn <- function(object, newdata, type = "response", ...) {
   x <- model.matrix(object$formula, data = newdata)
@@ -325,7 +353,7 @@ predict.nn <- function(object, newdata, type = "response", ...) {
     x <- scale(x, center = object$center_val, scale = object$scale_val)
   }
   X <- t(x)
-  cache <- forward_propagation(X, object$params, activation = object$activation)
+  cache <- forward_propagation(X, object$params, activation = object$activation, type = object$type)
   output <- if(!is.null(object$params$W3)){cache$A3} else{ if(!is.null(object$params$W2)){cache$A2} else{cache$A1} }
   output <- t(output)
   if(type == "response"){
