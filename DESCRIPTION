@@ -12,7 +12,6 @@ Authors@R: c(
 Description: Functions to support the Danish language site aimat.dk
     containing teaching material related to the math behind AI.
 Imports: Matrix
-Config/Needs/wasm: rwasm
 License: GPL (>= 3)
 Encoding: UTF-8
 LazyData: true
