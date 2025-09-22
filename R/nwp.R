@@ -27,7 +27,7 @@ nwp_one_numeric <- function(x, w2v){
 #' @export
 #'
 #' @examples
-#' bog_w2v <- w2v(bog, win = 1, hidden_dim = 3, epochs = 10, learning_rate = 0.01, verbose = 0)
+#' bog_w2v <- w2v(bog, win = 1, hidden_dim = 3, epochs = 5, learning_rate = 0.01, verbose = 0)
 #' bog_data <- nwp_make_word_data(corpus = bog, context_size = 2, w2v = bog_w2v)
 nwp_make_word_data <- function(corpus, context_size, w2v, return = "both") {
   # Create a list of data frames for each context
