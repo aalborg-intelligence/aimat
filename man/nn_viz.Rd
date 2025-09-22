@@ -17,6 +17,8 @@ ir <- iris
 ir[,1:4] <- scale(ir[,1:4])
 fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
-nn_viz(fit_ir)
+if(requireNamespace("visNetwork", quietly = TRUE)){
+  nn_viz(fit_ir)
+}
 
 }

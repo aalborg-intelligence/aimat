@@ -108,9 +108,9 @@ server <- function(input, output){
         rhs <- paste(feature_vec, collapse = " + ")
         form <- as.formula(paste(lhs, "~", rhs, collapse = " "))
         dat <- current_data()
-        if(input$type == "klassifikation"){
-          dat[[lhs]] <- factor(dat[[lhs]])
-        }
+        # if(input$type == "klassifikation"){
+        #   dat[[lhs]] <- factor(dat[[lhs]])
+        # }
         hidden <- c(input$hidden1, input$hidden2)
         # if(!any(hidden>0)){
         #   stop("Mindst et skjult lag skal have neuroner.")

@@ -166,7 +166,7 @@ w2v_build_data <- function(corpus, win = 1){
 #' @param learning_rate Learning rate
 #' @param verbose Integer, verbosity level (0 = no output, >0 = output every `verbose` epochs)
 #' @param weights FIXME
-#' 
+#'
 #'
 #' @examples
 #' w <- w2v(bog, hidden_dim = 2, epochs = 10, learning_rate = 0.01, verbose = 1)
@@ -184,23 +184,23 @@ w2v <- function(corpus, win = 1, hidden_dim = 3, epochs = 100, learning_rate = 0
   return(rslt)
 }
 
-#' Type function for words (non-exportet helper function)
+# Type function for words (non-exportet helper function)
 type_fun <- function(x) {
   switch(x,
          "ko" = "dyr",
          "hest" = "dyr",
          "marsvin" = "dyr",
-         "æsel" = "dyr",
+         "\\u00e6sel" = "dyr",
          "bil" = "ting",
          "cykel" = "ting",
          "hus" = "ting",
          "skur" = "ting",
-         "blå" = "farve",
-         "grøn" = "farve",
-         "blåt" = "farve",
-         "grønt" = "farve",
+         "bl\\u00e5" = "farve",
+         "gr\\u00f8n" = "farve",
+         "bl\\u00e5t" = "farve",
+         "gr\\u00f8nt" = "farve",
          "ser" = "verbum",
-         "får" = "verbum",
+         "f\\u00e5r" = "verbum",
          "har" = "verbum",
          "og" = "og",
          "en" = "artikel",
@@ -238,8 +238,8 @@ plot.w2v <- function(x, ..., which = 1){
     } else{
       stop("which must be 1 or 2")
     }
-  requireNamespace(dplyr)   ## FIXME
-  requireNamespace(plotly)  ## FIXME
+  requireNamespace("dplyr")   ## FIXME
+  requireNamespace("plotly")  ## FIXME
   dat <- cbind(ord = x$vocab, as.data.frame(as.matrix(W)))
   if(all(unique(dat$ord) %in% unique(bog))){
     dat$type <- sapply(dat$ord, type_fun)
@@ -248,22 +248,24 @@ plot.w2v <- function(x, ..., which = 1){
   }
   if(ncol(W) == 3){
     # stop("Plotting only works for three-dimensional word vectors")
-  dat_dir <- rowwise(dat) |> mutate(u = V1/sqrt(V1^2 + V2^2 + V3^2),
-                                    v = V2/sqrt(V1^2 + V2^2 + V3^2),
-                                    w = V3/sqrt(V1^2 + V2^2 + V3^2))
+  dat_dir <- dplyr::rowwise(dat) |>
+    dplyr::mutate(u = V1/sqrt(V1^2 + V2^2 + V3^2),
+                  v = V2/sqrt(V1^2 + V2^2 + V3^2),
+                  w = V3/sqrt(V1^2 + V2^2 + V3^2))
   # Add zero and NA between each row of pos_dat_dir
-  dat_dir |> group_by(ord) |> reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), V3 = c(V3, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA), w = c(w, NA, NA)) |>
-    plot_ly() |>
-    add_trace(x = ~V1, y = ~V2, z = ~V3, type = "scatter3d", mode = "lines", line = list(width = 2), color = ~type, text = ~ord) |>
-    add_trace(x = ~V1, y = ~V2, z = ~V3, u = ~u, v = ~v, w = ~w, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1, sizemode = "absolute")
+  dat_dir |> dplyr::group_by(ord) |>
+    dplyr::reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), V3 = c(V3, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA), w = c(w, NA, NA)) |>
+    plotly::plot_ly() |>
+    plotly::add_trace(x = ~V1, y = ~V2, z = ~V3, type = "scatter3d", mode = "lines", line = list(width = 2), color = ~type, text = ~ord) |>
+    plotly::add_trace(x = ~V1, y = ~V2, z = ~V3, u = ~u, v = ~v, w = ~w, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1, sizemode = "absolute")
   } else if(ncol(W) == 2){
-    dat_dir <- rowwise(dat) |> mutate(u = V1/sqrt(V1^2 + V2^2),
-                                      v = V2/sqrt(V1^2 + V2^2))
+    dat_dir <- dplyr::rowwise(dat) |>
+      dplyr::mutate(u = V1/sqrt(V1^2 + V2^2), v = V2/sqrt(V1^2 + V2^2))
     # Add zero and NA between each row of pos_dat_dir
-    dat_dir |> group_by(ord) |> reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA)) |>
-      plot_ly() |>
-      add_trace(x = ~V1, y = ~V2, type = "scatter", mode = "lines", line = list(width = 2), color = ~type, text = ~ord)
-      # add_trace(x = ~V1, y = ~V2, u = ~u, v = ~v, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1)
+    dat_dir |> dplyr::group_by(ord) |> dplyr::reframe(ord = rep(ord, 3), V1 = c(V1, 0, NA), V2 = c(V2, 0, NA), type = rep(type, 3), u = c(u, NA, NA), v = c(v, NA, NA)) |>
+      plotly::plot_ly() |>
+      plotly::add_trace(x = ~V1, y = ~V2, type = "scatter", mode = "lines", line = list(width = 2), color = ~type, text = ~ord)
+      # plotly::add_trace(x = ~V1, y = ~V2, u = ~u, v = ~v, type = "cone", anchor = "tail", showscale = FALSE, colorscale = list(list(0, "black"), list(1, "black")), sizeref = 1)
   } else{
     stop("Plotting only works for two- or three-dimensional word vectors")
   }

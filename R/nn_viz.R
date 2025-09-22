@@ -2,14 +2,14 @@
 #'
 #' @param nn FIXME
 #'
-#' @import visNetwork
-#'
 #' @examples
 #' ir <- iris
 #' ir[,1:4] <- scale(ir[,1:4])
 #' fit_ir <- nn_fun(Species ~ ., ir, n_hidden = c(3,5), eta = 0.01, iter = 1000,
 #'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
-#' nn_viz(fit_ir)
+#' if(requireNamespace("visNetwork", quietly = TRUE)){
+#'   nn_viz(fit_ir)
+#' }
 #'
 #' @export
 nn_viz <- function(nn) {
@@ -123,11 +123,11 @@ nn_viz <- function(nn) {
   }
 
 # browser()
-  visNetwork(nodes, edges) %>%
-    visEdges(arrows = "to") %>%
-    visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
-    visInteraction(hover = TRUE) %>%
-    visHierarchicalLayout(direction = "LR")
+  visNetwork::visNetwork(nodes, edges) |>
+    visNetwork::visEdges(arrows = "to") |>
+    visNetwork::visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) |>
+    visNetwork::visInteraction(hover = TRUE) |>
+    visNetwork::visHierarchicalLayout(direction = "LR")
 }
 
 
@@ -244,9 +244,9 @@ nn_viz <- function(nn) {
 #   }
 #
 # # browser()
-#   visNetwork(nodes, edges) %>%
-#     visEdges(arrows = "to") %>%
-#     visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) %>%
-#     visInteraction(hover = TRUE) %>%
+#   visNetwork(nodes, edges) |>
+#     visEdges(arrows = "to") |>
+#     visOptions(highlightNearest = TRUE, nodesIdSelection = TRUE) |>
+#     visInteraction(hover = TRUE) |>
 #     visHierarchicalLayout(direction = "LR")
 # }

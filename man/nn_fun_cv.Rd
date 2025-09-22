@@ -7,6 +7,10 @@
 nn_fun_cv(formula, data, ..., k = 5)
 }
 \arguments{
+\item{formula}{response ~ predictors}
+
+\item{data}{data frame}
+
 \item{...}{Additional arguments passed to `nn_fun`}
 
 \item{k}{Number of folds for cross-validation}
@@ -18,5 +22,6 @@ Mean accuracy across folds
 Cross-validation for neural network
 }
 \examples{
-cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy")
+cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+lossfun = "cross-entropy")
 }

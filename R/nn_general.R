@@ -374,12 +374,15 @@ predict.nn <- function(object, newdata, type = "response", ...) {
 }
 
 #' Cross-validation for neural network
+#' @param formula response ~ predictors
+#' @param data data frame
 #' @param ... Additional arguments passed to `nn_fun`
 #' @param k Number of folds for cross-validation
 #' @return Mean accuracy across folds
 #' @export
 #' @examples
-#' cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000, lossfun = "cross-entropy")
+#' cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
+#' lossfun = "cross-entropy")
 nn_fun_cv <- function(formula, data, ..., k=5){
   # Cross-validation for neural network
   alist <- list(...)

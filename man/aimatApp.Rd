@@ -13,7 +13,7 @@ aimatApp(appname)
 This function launches a Shiny app for training neural networks using the `aimat` package.
 }
 \examples{
-if (interactive()) {
+if (interactive() & requireNamespace("shiny", quietly = TRUE)) {
   aimatApp("app_full")
 }
 }

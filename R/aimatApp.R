@@ -4,7 +4,7 @@
 #' @param appname A character string specifying the name of the app to run. The app should be located in the `aimat` package's system file directory.
 #'
 #' @examples
-#' if (interactive()) {
+#' if (interactive() & requireNamespace("shiny", quietly = TRUE)) {
 #'   aimatApp("app_full")
 #' }
 #' @export

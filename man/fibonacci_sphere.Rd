@@ -17,8 +17,9 @@ Fibonacci Sphere
 }
 \examples{
 points <- fibonacci_sphere()
-library(plotly)
-plot_ly(x = points[, 1], y = points[, 2], z = points[, 3],
-  type = "scatter3d", mode = "markers", marker = list(size = 5))
+if(requireNamespace("plotly", quietly = TRUE)){
+  plotly::plot_ly(x = points[, 1], y = points[, 2], z = points[, 3],
+    type = "scatter3d", mode = "markers", marker = list(size = 5))
+}
 
 }
