@@ -284,6 +284,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
     if(length(levels(y))==2){
       if(length(setdiff(lvls, c(0,1))) == 0){ # 0-1 data given, so make 1 reference level
         y <- relevel(y, "1")
+        lvls <- levels(y)
       }
       y <- ifelse(y==levels(y)[1], 1, 0)
     } else{
@@ -357,7 +358,7 @@ predict.nn <- function(object, newdata, type = "response", ...) {
   output <- if(!is.null(object$params$W3)){cache$A3} else{ if(!is.null(object$params$W2)){cache$A2} else{cache$A1} }
   output <- t(output)
   if(type == "response"){
-    if(!is.null(object$lvls)){
+    if(!is.null(object$levels)){
       colnames(output) <- object$lvls
     }
     return(output)
