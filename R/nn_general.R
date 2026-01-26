@@ -306,6 +306,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   }
   rslt <- train_neural_network(X, y, n1 = n_hidden[1], n2 = n_hidden[2], iterations = iter, learning_rate = eta, params = params, loss_function = lossfun, activation = activation, trace = trace, type = type)
   rslt$formula <- formula
+  environment(rslt$formula) <- baseenv()
   rslt$levels <- lvls
   rslt$activation <- activation
   rslt$scale_val <- scale_val
