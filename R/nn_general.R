@@ -359,7 +359,7 @@ predict.nn <- function(object, newdata, type = "response", ...) {
   output <- t(output)
   if(type == "response"){
     if(!is.null(object$levels)){
-      colnames(output) <- object$lvls
+      colnames(output) <- object$levels
     }
     return(output)
   } else{
