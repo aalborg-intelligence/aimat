@@ -269,9 +269,13 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   ## Assumes response variable has values +/-1.
   ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
   x <- model.matrix(formula, data = data)
+  ## Non-omitted (non-NA) entries
+  OK <- as.integer(attr(x, "dimnames")[[1]])
+  ## Omit intercept column
   x <- x[,colnames(x)!="(Intercept)"]
   y_name <- as.character(formula)[2]
-  y <- data[[y_name]]
+  y <- data[[y_name]][OK]
+
 
   lvls <- NULL
   if(type == "klassifikation" | is.character(y) | is.factor(y)){
