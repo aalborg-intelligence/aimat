@@ -316,6 +316,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   rslt$scale_val <- scale_val
   rslt$center_val <- center_val
   rslt$type <- type
+  rslt$rowids <- OK
   class(rslt) <- "nn"
   return(rslt)
 }
