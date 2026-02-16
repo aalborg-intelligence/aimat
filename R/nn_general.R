@@ -269,13 +269,12 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   ## Assumes response variable has values +/-1.
   ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
   x <- model.matrix(formula, data = data)
-  ## Non-omitted (non-NA) entries
-  OK <- as.integer(attr(x, "dimnames")[[1]])
+  ## Non-omitted (non-NA) rownames
+  OK <- rownames(x)
   ## Omit intercept column
   x <- x[,colnames(x)!="(Intercept)"]
   y_name <- as.character(formula)[2]
-  y <- data[[y_name]][OK]
-
+  y <- data[OK,y_name,drop=TRUE]
 
   lvls <- NULL
   if(type == "klassifikation" | is.character(y) | is.factor(y)){
@@ -365,6 +364,8 @@ predict.nn <- function(object, newdata, type = "response", ...) {
   output <- t(output)
   if(type == "response"){
     if(!is.null(object$levels)){
+      #' For binary classification we only have a single probability for the first class
+      object$levels <- object$levels[1]
       colnames(output) <- object$levels
     }
     return(output)
@@ -415,6 +416,7 @@ nn_fun_cv <- function(formula, data, ..., k=5){
     pred <- predict(fit, newdata = test, type = "class")
     y <- test[[y_name]]
     prec[i] <- mean(pred==y)
+    cat("Fold", i, "accuracy:", prec[i], "\n")
     # if(prec[i]<.5){
     #   prec[i] <- 1-prec[i]
     # }
