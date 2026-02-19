@@ -393,6 +393,12 @@ predict.nn <- function(object, newdata, type = "response", ...) {
 #' lossfun = "cross-entropy")
 nn_fun_cv <- function(formula, data, ..., k=5){
   # Cross-validation for neural network
+  # Retain only valid rows
+  junk <- model.matrix(formula, data = data)
+  ## Non-omitted (non-NA) rownames
+  OK <- rownames(junk)
+  data <- data[OK,]
+  # Now run cross-validation
   alist <- list(...)
   alist$formula <- formula
   y_name <- as.character(formula)[2]
