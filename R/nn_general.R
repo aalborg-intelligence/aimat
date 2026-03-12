@@ -213,6 +213,7 @@ update_parameters <- function(params, grads, learning_rate) {
 train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params = NULL, loss_function = "cross-entropy", activation = "Sigmoid", trace = FALSE, type = "klassifikation") {
   if(n1==0 & n2>0){
     n1 <- n2
+    n2 <- 0
   }
   n <- nrow(X)
   if(is.null(params)){
