@@ -210,7 +210,10 @@ update_parameters <- function(params, grads, learning_rate) {
 }
 
 # Train the neural network
-train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params = NULL, loss_function = "cross-entropy", activation = "Sigmoid", trace = FALSE, type = "klassifikation") {
+train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate,
+                                 params = NULL, loss_function = "cross-entropy",
+                                 activation = "Sigmoid", trace = FALSE,
+                                 type = "klassifikation", verbose = TRUE) {
   if(n1==0 & n2>0){
     n1 <- n2
     n2 <- 0
@@ -226,7 +229,7 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
     loss_list[[i]] <- loss <- compute_loss(Y, output, loss_function)
     grads <- backward_propagation(X, Y, params, cache, loss_function = loss_function, activation = activation, type = type)
     params <- update_parameters(params, grads, learning_rate)
-    if (iterations >= 5 && i %% floor(iterations/5) == 0) {
+    if (verbose && iterations >= 5 && i %% floor(iterations/5) == 0) {
       cat("Iteration", i, "loss:", loss, "\n")
     }
     if(trace){
@@ -266,7 +269,7 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate, params
 #'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
 #'
 #' @export
-nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE){
+nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE, verbose = TRUE){
   ## Assumes response variable has values +/-1.
   ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
   x <- model.matrix(formula, data = data)
@@ -308,7 +311,11 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   } else{
     params <- initialize_parameters(nrow(X), n_hidden[1], n_hidden[2], num_classes = nrow(y))
   }
-  rslt <- train_neural_network(X, y, n1 = n_hidden[1], n2 = n_hidden[2], iterations = iter, learning_rate = eta, params = params, loss_function = lossfun, activation = activation, trace = trace, type = type)
+  rslt <- train_neural_network(X, y, n1 = n_hidden[1], n2 = n_hidden[2],
+                               iterations = iter, learning_rate = eta,
+                               params = params, loss_function = lossfun,
+                               activation = activation, trace = trace,
+                               type = type, verbose = verbose)
   rslt$formula <- formula
   environment(rslt$formula) <- baseenv()
   rslt$levels <- lvls
@@ -392,7 +399,7 @@ predict.nn <- function(object, newdata, type = "response", ...) {
 #' @examples
 #' cv <- nn_fun_cv(Species ~ ., iris, n_hidden = c(3,5), eta = 0.01, iter = 1000,
 #' lossfun = "cross-entropy")
-nn_fun_cv <- function(formula, data, ..., k=5){
+nn_fun_cv <- function(formula, data, ..., k=5, verbose = TRUE){
   # Cross-validation for neural network
   # Retain only valid rows
   junk <- model.matrix(formula, data = data)
@@ -423,7 +430,9 @@ nn_fun_cv <- function(formula, data, ..., k=5){
     pred <- predict(fit, newdata = test, type = "class")
     y <- test[[y_name]]
     prec[i] <- mean(pred==y)
-    cat("Fold", i, "accuracy:", prec[i], "\n")
+    if(verbose){
+      cat("Fold", i, "accuracy:", prec[i], "\n")
+    }
     # if(prec[i]<.5){
     #   prec[i] <- 1-prec[i]
     # }
