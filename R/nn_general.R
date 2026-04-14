@@ -422,20 +422,25 @@ nn_fun_cv <- function(formula, data, ..., k=5, verbose = TRUE){
   for(i in seq_len(k)){
     train <- data[id!=i,]
     test <- data[id==i,]
+    y <- test[[y_name]]
     alist$data <- train
     fit <- do.call(nn_fun, alist)
-    if(is.null(fit$levels)){
-      stop("Cross validation only possible for classification problems at the moment.")
+    if(is.null(fit$levels)){ # Regression
+      pred <- predict(fit, newdata = test, type = "response")
+      prec[i] <- sqrt(mean((y-pred)^2))
+      if(verbose){
+        cat("Fold", i, "RMSE:", prec[i], "\n")
+      }
+      # stop("Cross validation only possible for classification problems at the moment.")
+    } else{
+      pred <- predict(fit, newdata = test, type = "class")
+      prec[i] <- mean(pred==y)
+      if(verbose){
+        cat("Fold", i, "accuracy:", prec[i], "\n")
+      }
     }
-    pred <- predict(fit, newdata = test, type = "class")
-    y <- test[[y_name]]
-    prec[i] <- mean(pred==y)
-    if(verbose){
-      cat("Fold", i, "accuracy:", prec[i], "\n")
-    }
-    # if(prec[i]<.5){
-    #   prec[i] <- 1-prec[i]
-    # }
   }
-  return(mean(prec))
+  rslt <- mean(prec)
+  attr(rslt, "folds") <- prec
+  return(rslt)
 }
