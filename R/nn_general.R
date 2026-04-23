@@ -418,7 +418,8 @@ nn_fun_cv <- function(formula, data, ..., k=5, verbose = TRUE){
     partial_folds <- 1:(n-k*n0)
   }
   id <- sample(c(full_folds, partial_folds))
-  prec <- rep(0, k)
+  prec <- rmse <- mae <- rep(0, k)
+  confmat <- vector("list", k)
   for(i in seq_len(k)){
     train <- data[id!=i,]
     test <- data[id==i,]
@@ -427,20 +428,29 @@ nn_fun_cv <- function(formula, data, ..., k=5, verbose = TRUE){
     fit <- do.call(nn_fun, alist)
     if(is.null(fit$levels)){ # Regression
       pred <- predict(fit, newdata = test, type = "response")
-      prec[i] <- sqrt(mean((y-pred)^2))
+      rmse[i] <- sqrt(mean((y-pred)^2))
+      mae[i] <- mean(abs(y-pred))
       if(verbose){
-        cat("Fold", i, "RMSE:", prec[i], "\n")
+        cat("Fold", i, "RMSE:", rmse[i], "\n")
       }
       # stop("Cross validation only possible for classification problems at the moment.")
     } else{
       pred <- predict(fit, newdata = test, type = "class")
       prec[i] <- mean(pred==y)
+      confmat[[i]] <- table(pred = pred, obs = y)
       if(verbose){
         cat("Fold", i, "accuracy:", prec[i], "\n")
       }
     }
   }
-  rslt <- mean(prec)
-  attr(rslt, "folds") <- prec
+  if(!is.null(fit$levels)){
+    rslt <- mean(prec)
+    attr(rslt, "folds") <- prec
+    attr(rslt, "confmat") <- confmat
+  } else{
+    rslt <- mean(rmse)
+    attr(rslt, "rmse") <- rmse
+    attr(rslt, "mae") <- mae
+  }
   return(rslt)
 }
