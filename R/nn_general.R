@@ -258,6 +258,10 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate,
 #' @param lossfun one of "squared", "cross-entropy"
 #' @param type one of "regression", "klassifikation"
 #' @param trace logical to save each iteration
+#' @param verbose logical to print progress info
+#' @param probability_target logical to use classification setup without
+#' converting response to binary (for a target given directly as probabilities).
+#' This may cause problems with the fitted object in further calculations.
 #'
 #' @returns Fitted neural network model as an object of class "nn"
 #'
@@ -269,9 +273,10 @@ train_neural_network <- function(X, Y, n1, n2, iterations, learning_rate,
 #'   lossfun = "cross-entropy", activation = "Sigmoid", type = "klassifikation")
 #'
 #' @export
-nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE, verbose = TRUE){
-  ## Assumes response variable has values +/-1.
-  ## Unchanged for "identity" and "softsign". Changed to 0/1 for "sigmoid".
+nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = "Sigmoid", eta = 0.01, iter = 1000, scale = TRUE, lossfun = "squared", type = "klassifikation", trace = FALSE, verbose = TRUE, probability_target = FALSE){
+  if(probability_target & type != "klassifikation"){
+    stop("probability_target can only be TRUE if type is 'klassifikation'")
+  }
   x <- model.matrix(formula, data = data)
   ## Non-omitted (non-NA) rownames
   OK <- rownames(x)
@@ -281,7 +286,7 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
   y <- data[OK,y_name,drop=TRUE]
 
   lvls <- NULL
-  if(type == "klassifikation" | is.character(y) | is.factor(y)){
+  if((type == "klassifikation" | is.character(y) | is.factor(y)) & !probability_target){
     # Ensure y is a factor
     if(!is.factor(y)){
       y <- factor(y)
