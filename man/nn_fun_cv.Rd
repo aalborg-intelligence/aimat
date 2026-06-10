@@ -4,7 +4,7 @@
 \alias{nn_fun_cv}
 \title{Cross-validation for neural network}
 \usage{
-nn_fun_cv(formula, data, ..., k = 5)
+nn_fun_cv(formula, data, ..., k = 5, verbose = TRUE)
 }
 \arguments{
 \item{formula}{response ~ predictors}

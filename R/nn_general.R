@@ -366,7 +366,13 @@ nn_fun <- function(formula, data, weights = NA, n_hidden = c(1,1), activation = 
 #' predict(nn_trees, trees, type = "response")
 #' @export
 predict.nn <- function(object, newdata, type = "response", ...) {
-  x <- model.matrix(object$formula, data = newdata)
+  form <- object$formula
+  # If y is missing insert a dummy response variable to create the model matrix
+  y_name <- as.character(form)[2]
+  if(!y_name %in% colnames(newdata)){
+    newdata[[y_name]] <- 0
+  }
+  x <- model.matrix(form, data = newdata)
   x <- x[,colnames(x)!="(Intercept)",drop=FALSE]
   if(!is.null(object$scale_val)){
     x <- scale(x, center = object$center_val, scale = object$scale_val)
@@ -377,8 +383,10 @@ predict.nn <- function(object, newdata, type = "response", ...) {
   output <- t(output)
   if(type == "response"){
     if(!is.null(object$levels)){
-      #' For binary classification we only have a single probability for the first class
-      object$levels <- object$levels[1]
+      # For binary classification we only have a single probability for the first class
+      if(length(object$levels)==2){
+        object$levels <- object$levels[1]
+      }
       colnames(output) <- object$levels
     }
     return(output)

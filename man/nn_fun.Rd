@@ -15,7 +15,9 @@ nn_fun(
   scale = TRUE,
   lossfun = "squared",
   type = "klassifikation",
-  trace = FALSE
+  trace = FALSE,
+  verbose = TRUE,
+  probability_target = FALSE
 )
 }
 \arguments{
@@ -40,6 +42,12 @@ nn_fun(
 \item{type}{one of "regression", "klassifikation"}
 
 \item{trace}{logical to save each iteration}
+
+\item{verbose}{logical to print progress info}
+
+\item{probability_target}{logical to use classification setup without
+converting response to binary (for a target given directly as probabilities).
+This may cause problems with the fitted object in further calculations.}
 }
 \value{
 Fitted neural network model as an object of class "nn"
